@@ -115,14 +115,16 @@ class Blockchain:
         self.chain.append(block)
         return block
 
-    def new_product(self, upc):
+    def new_product(self, upc, item_no):
         """
         Creates a new product to go into the next mined Block
         :param upc: UPC of the product
+        :param item_no: Item number of product
         :return: The index of the Block that will hold this transaction
         """
         self.product = { 
-            'upc': upc
+            'upc': upc,
+            'item_no': item_no
         }
 
         return self.last_block['index'] + 1

@@ -25,6 +25,11 @@ def full_chain():
     return jsonify(response), 200
 
 
+# {
+#     param: upc
+#     param: item_no
+#     param: new_owner
+# }
 @app.route('/register', methods=['POST'])
 def register_product():
     last_block = blockchain.last_block
@@ -35,6 +40,8 @@ def register_product():
     required = ['upc', 'owner']
     if not all(k in values for k in required):
         return 'Missing values', 400
+
+    #TODO: call validate
 
     blockchain.new_product(upc=values['upc'])
     blockchain.new_owner(owner=values['owner'])
@@ -52,7 +59,12 @@ def register_product():
     }
     return jsonify(response), 201
 
-
+# {
+#     param: upc
+#     param: item_no
+#     param: current_owner
+#     param: new_owner
+# }
 @app.route('/transaction', methods=['POST'])
 def transaction():
     last_block = blockchain.last_block
@@ -64,15 +76,22 @@ def transaction():
     if not all(k in values for k in required):
         return 'Missing values', 400
 
+    # TODO: call validate
+
     # TODO: append owner to owner_history in product's previous block
 
     return None
 
-
+# {
+#     param: upc
+#     param: item_no
+#     param: current_owner
+#     param: new_owner
+# }
 @app.route('/validation', methods=['GET'])
 def validate():
 
-    #TODO: validation
+    #TODO: validation; iterate through blockchain; verify by upc, item_no, current_owner for most recent
 
     return None
 

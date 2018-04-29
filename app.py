@@ -24,7 +24,6 @@ def full_chain():
     }
     return jsonify(response), 200
 
-
 # {
 #     param: upc
 #     param: item_no
@@ -37,13 +36,13 @@ def register_product():
 
     values = request.get_json()
 
-    required = ['upc', 'owner']
+    required = ['upc', 'item_no' 'owner']
     if not all(k in values for k in required):
         return 'Missing values', 400
 
     #TODO: call validate
 
-    blockchain.new_product(upc=values['upc'])
+    blockchain.new_product(upc=values['upc'], item_no=values['item_no'])
     blockchain.new_owner(owner=values['owner'])
 
     previous_hash = blockchain.hash(last_block)
@@ -72,27 +71,36 @@ def transaction():
 
     values = request.get_json()
 
-    required = ['upc', 'owner']
+    required = ['upc', 'item_no', 'current_owner', 'new_owner']
     if not all(k in values for k in required):
         return 'Missing values', 400
 
-    # TODO: call validate
+    # call validate
+    verified_block = validate(values['upc'], values['item_no'], values['current_owner'])
+    if verified_block:
+        blockchain.new_product(upc=values['upc'], item_no=values['item_no'])
+        index = blockchain.new_owner(verified_block.owner_history + [values['new_owner']]))
 
-    # TODO: append owner to owner_history in product's previous block
+        previous_hash = blockchain.hash(last_block)
+        block = blockchain.new_block(proof, previous_hash)
 
-    return None
+        response = {'message': f'Transaction will be added to Block {index}'}
+    else:
+        response = {'message': f'Transaction cannot be added to chain'}
+
+    return jsonify(response), 201
 
 # {
 #     param: upc
 #     param: item_no
 #     param: current_owner
-#     param: new_owner
 # }
-@app.route('/validation', methods=['GET'])
+@app.route('/validate', methods=['GET'])
 def validate():
 
     #TODO: validation; iterate through blockchain; verify by upc, item_no, current_owner for most recent
 
+    #TODO return block used to verify; otherwise return None
     return None
 
 

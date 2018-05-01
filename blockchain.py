@@ -29,33 +29,28 @@ class Blockchain:
         else:
             raise ValueError('Invalid URL')
 
-    def valid_trans(self, chain):
+    def valid_trans(self, chain, cur_owner, cur_upc):
         """
         Determine if a given blockchain is valid
         :param chain: A blockchain
         :return: True if valid, False if not
         """
+        current_index = len(chain)
+        last_block = chain[current_index]
+        
+        if valid_chain(chain) :
+            while current_index > -1:
+                block = chain[current_index]
+            
+                # Check that the hash of the block is correct
+                if block['owner_history'].owner == cur_owner:
+                    if block['product'].upc == cur_upc:
+                        print(f'{block}')
+                        print("\n-----------\n")
+                        return true
 
-        last_block = chain[0]
-        current_index = 1
-
-        while current_index < len(chain):
-            block = chain[current_index]
-            print(f'{last_block}')
-            print(f'{block}')
-            print("\n-----------\n")
-            # Check that the hash of the block is correct
-            if block['previous_hash'] != self.hash(last_block):
-                return False
-
-            # Check that the Proof of Work is correct
-            if not self.valid_proof(last_block['proof'], block['proof'], last_block['previous_hash']):
-                return False
-
-            last_block = block
-            current_index += 1
-
-        return True
+                current_index -= 1
+        return false
 
     def valid_chain(self, chain):
         """

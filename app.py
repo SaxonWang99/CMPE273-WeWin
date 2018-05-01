@@ -88,12 +88,20 @@ def transaction():
 #     param: current_owner
 #     param: new_owner
 # }
-@app.route('/validation', methods=['GET'])
-def validate():
-
+@app.route('/validation/<string:cur_owner><string:cur_upc>', methods=['GET'])
+def validate(cur_owner,cur_upc):
     #TODO: validation; iterate through blockchain; verify by upc, item_no, current_owner for most recent
-
-    return None
+    if  blockchain.valid_trans(blockchain,cur_owner,cur_upc):
+        response = {
+            'message': 'validated successfully'
+            'chain': blockchain.chain,
+            'length': len(blockchain.chain),
+        }
+    else:
+        response = {
+            'message': 'invalid',
+        }
+    return jsonify(response), 200
 
 
 @app.route('/nodes/register', methods=['POST'])

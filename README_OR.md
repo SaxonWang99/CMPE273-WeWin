@@ -1,4 +1,9 @@
-# Learn Blockchains by Building One
+How to Setup 
+virtualenv my-venv 
+. my-venv/bin/activate 
+pip3 install -r requirements.txt 
+How to run? FLASK_APP=app.py 
+flask run# Learn Blockchains by Building One
 
 [![Build Status](https://travis-ci.org/dvf/blockchain.svg?branch=master)](https://travis-ci.org/dvf/blockchain)
 

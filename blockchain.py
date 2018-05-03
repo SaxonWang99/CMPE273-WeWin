@@ -29,29 +29,6 @@ class Blockchain:
         else:
             raise ValueError('Invalid URL')
 
-    def valid_trans(self, chain, cur_owner, cur_upc):
-        """
-        Determine if a given blockchain is valid
-        :param chain: A blockchain
-        :return: True if valid, False if not
-        """
-        current_index = len(chain)
-        last_block = chain[current_index]
-        
-        if valid_chain(chain) :
-            while current_index > -1:
-                block = chain[current_index]
-            
-                # Check that the hash of the block is correct
-                if block['owner_history'].owner == cur_owner:
-                    if block['product'].upc == cur_upc:
-                        print(f'{block}')
-                        print("\n-----------\n")
-                        return true
-
-                current_index -= 1
-        return false
-
     def valid_chain(self, chain):
         """
         Determine if a given blockchain is valid
@@ -79,6 +56,32 @@ class Blockchain:
             current_index += 1
 
         return True
+
+    def valid_trans(self, chain, cur_upc,cur_item_no,current_owner):
+        """
+        Determine if a given blockchain is valid
+        :param chain: A blockchain
+        :return: True if valid, False if not
+        """
+        #print(chain)
+        lastIndex = len(chain.chain)-1
+        last_block = chain.chain[lastIndex]
+        while lastIndex >0:
+            if last_block['product']['upc'] == cur_upc:
+                if last_block['product']['item_no'] == cur_item_no:
+                    #print(last_block['owner_history'][0]['owner'])
+                    if last_block['owner_history'][0]['owner'] == current_owner:
+                        print(last_block['owner_history'],"---",current_owner)
+                        return True
+                    else:
+                        print(last_block['owner_history'],"-+-",current_owner)
+                        return False
+                #else:
+                    #print(last_block['product']['item_no'],"-+-",cur_item_no)
+            #print(block)
+            lastIndex-= 1
+            last_block = chain.chain[lastIndex]
+        return False
 
     def resolve_conflicts(self):
         """

@@ -2,6 +2,7 @@ import hashlib
 import json
 from time import time
 from urllib.parse import urlparse
+import requests
 
 
 class Blockchain:
@@ -63,6 +64,11 @@ class Blockchain:
         :param chain: A blockchain
         :return: True if valid, False if not
         """
+        chainvalided = self.valid_chain(chain.chain)
+        if(chainvalided):
+            print("good",chainvalided)
+        else:
+            print("bad",chainvalided)
         #print(chain)
         lastIndex = len(chain.chain)-1
         last_block = chain.chain[lastIndex]
@@ -71,10 +77,10 @@ class Blockchain:
                 if last_block['product']['item_no'] == cur_item_no:
                     #print(last_block['owner_history'][0]['owner'])
                     if last_block['owner_history'][0]['owner'] == current_owner:
-                        print(last_block['owner_history'],"---",current_owner)
+                        #print(last_block['owner_history'],"---",current_owner)
                         return True
                     else:
-                        print(last_block['owner_history'],"-+-",current_owner)
+                       # print(last_block['owner_history'],"-+-",current_owner)
                         return False
                 #else:
                     #print(last_block['product']['item_no'],"-+-",cur_item_no)

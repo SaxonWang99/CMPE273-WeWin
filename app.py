@@ -25,62 +25,128 @@ def full_chain():
     return jsonify(response), 200
 
 
+# /register - register new product
 # {
 #     param: upc
+#     param: manufacturer
 #     param: item_no
 #     param: new_owner
 # }
 @app.route('/register', methods=['POST'])
 def register_product():
+    # get updated chain
+    consensus()
+
     last_block = blockchain.last_block
     proof = blockchain.proof_of_work(last_block)
 
+    # validate request parameters
     values = request.get_json()
-
-    required = ['upc', 'owner']
+    required = ['upc', 'manufacturer', 'item_no', 'new_owner']
     if not all(k in values for k in required):
         return 'Missing values', 400
 
-    #TODO: call validate
-
-    blockchain.new_product(upc=values['upc'])
-    blockchain.new_owner(owner=values['owner'])
-
-    previous_hash = blockchain.hash(last_block)
-    block = blockchain.new_block(proof, previous_hash)
-
-    response = {
-        'message': "New Block Forged",
-        'index': block['index'],
-        'product': block['product'],
-        'owner_history': block['owner_history'],
-        'proof': block['proof'],
-        'previous_hash': block['previous_hash'],
+    response = None
+    current_product = {
+        'upc': values['upc'],
+        'manufacturer': values['manufacturer'],
+        'item_no': values['item_no']
     }
+
+    # verify product has not already been registered
+    for i in range(last_block['index'], 0, -1):
+        verified_product = blockchain.chain[i]['product']
+
+        if verified_product == current_product:
+            response = {
+                'message': "New Block NOT Forged; Product already exists in chain: Block #" + i
+            }
+            break
+
+    # if product does not yet exist, create new block
+    if response is None:
+        blockchain.new_product(upc=values['upc'], manufacturer=values['manufacturer'], item_no=values['item_no'])
+        blockchain.new_owner(owner_history=None, owner=values['new_owner'])
+        previous_hash = blockchain.hash(last_block)
+        block = blockchain.new_block(proof, previous_hash)
+
+        response = {
+            'message': "New Block Forged",
+            'index': block['index'],
+            'product': block['product'],
+            'owner_history': block['owner_history'],
+            'proof': block['proof'],
+            'previous_hash': block['previous_hash'],
+        }
+
     return jsonify(response), 201
 
+# /transaction - create new transaction
 # {
 #     param: upc
+#     param: manufacturer
 #     param: item_no
 #     param: current_owner
 #     param: new_owner
 # }
 @app.route('/transaction', methods=['POST'])
 def transaction():
+    # get updated chain
+    consensus()
+
     last_block = blockchain.last_block
     proof = blockchain.proof_of_work(last_block)
 
+    # validate request parameters
     values = request.get_json()
-
-    required = ['upc', 'owner']
+    required = ['upc', 'manufacturer', 'item_no', 'current_owner', 'new_owner']
     if not all(k in values for k in required):
         return 'Missing values', 400
 
-    # TODO: call validate
+    response = None
+    current_product = {
+        'upc': values['upc'],
+        'manufacturer': values['manufacturer'],
+        'item_no': values['item_no']
+    }
+    current_owner = values['current_owner']
 
-    # TODO: append owner to owner_history in product's previous block
+    # verify product has not already been registered
+    for i in range(last_block['index'], 0, -1):
+        verified_block = blockchain.chain[i]
+        verified_product = verified_block['product']
+        verified_owner = verified_block['owner_history'][-1]
 
-    return None
+        # if product exists and last owner is verified, create new block
+        if verified_product == current_product and verified_owner == current_owner:
+            blockchain.new_product(upc=values['upc'], manufacturer=values['manufacturer'], item_no=values['item_no'])
+            blockchain.new_owner(owner_history=verified_block['owner_history'], owner=values['new_owner'])
+            previous_hash = blockchain.hash(last_block)
+            block = blockchain.new_block(proof, previous_hash)
+
+            response = {
+                'message': "New Block Forged",
+                'index': block['index'],
+                'product': block['product'],
+                'owner_history': block['owner_history'],
+                'proof': block['proof'],
+                'previous_hash': block['previous_hash'],
+            }
+            break
+        # if product exists but last owner is not verified, do NOT create new block
+        elif verified_product == current_product and verified_owner != current_owner:
+            response = {
+                'message': "New Block NOT Forged; Product is verified, but owner is not"
+            }
+            break
+
+    # if product does not exist, do NOT create new block
+    if response is None:
+        response = {
+            'message': "New Block NOT Forged; Product is not verified"
+        }
+
+    return jsonify(response), 201
 
 # {
 #     param: upc

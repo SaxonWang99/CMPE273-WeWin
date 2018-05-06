@@ -146,7 +146,7 @@ class Blockchain:
         self.chain.append(block)
         return block
 
-    def new_product(self, upc, item_no):
+    def new_product(self, upc, manufacturer, item_no):
         """
         Creates a new product to go into the next mined Block
         :param upc: UPC of the product
@@ -155,17 +155,19 @@ class Blockchain:
         """
         self.product = { 
             'upc': upc,
+            'manufacturer': manufacturer,
             'item_no': item_no
         }
 
         return self.last_block['index'] + 1
 
-    def new_owner(self, owner):
+    def new_owner(self, owner_history, owner):
         """
         Creates a new owner to go into the next mined Block
         :param owner: Address of the Sender
         :return: The index of the Block that will hold this transaction
         """
+        self.owner_history = owner_history
         self.owner_history.append({
             'owner': owner
         })

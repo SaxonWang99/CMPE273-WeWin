@@ -34,8 +34,9 @@ def full_chain():
 # }
 @app.route('/register', methods=['POST'])
 def register_product():
+    
     # get updated chain
-    consensus()
+    # consensus()
 
     last_block = blockchain.last_block
     proof = blockchain.proof_of_work(last_block)
@@ -53,20 +54,19 @@ def register_product():
         'item_no': values['item_no']
     }
 
-    # verify product has not already been registered
-    for i in range(last_block['index'], 0, -1):
-        verified_product = blockchain.chain[i]['product']
+    print(blockchain.last_block['index'])
 
+    # verify product has not already been registered
+    for i in range(blockchain.last_block['index']-1, 0, -1):
+        verified_product = blockchain.chain[i]['product']
+        print(i)
         if verified_product == current_product:
-            response = {
-                'message': "New Block NOT Forged; Product already exists in chain: Block #" + i
-            }
-            break
+            return "Error: Product already existsi; Block NOT forged", 400
 
     # if product does not yet exist, create new block
     if response is None:
         blockchain.new_product(upc=values['upc'], manufacturer=values['manufacturer'], item_no=values['item_no'])
-        blockchain.new_owner(owner_history=None, owner=values['new_owner'])
+        blockchain.new_owner(owner_history=[], owner=values['new_owner'])
         previous_hash = blockchain.hash(last_block)
         block = blockchain.new_block(proof, previous_hash)
 
@@ -92,7 +92,7 @@ def register_product():
 @app.route('/transaction', methods=['POST'])
 def transaction():
     # get updated chain
-    consensus()
+    # consensus()
 
     last_block = blockchain.last_block
     proof = blockchain.proof_of_work(last_block)
@@ -112,10 +112,12 @@ def transaction():
     current_owner = values['current_owner']
 
     # verify product has not already been registered
-    for i in range(last_block['index'], 0, -1):
+    for i in range(last_block['index']-1, 0, -1):
         verified_block = blockchain.chain[i]
         verified_product = verified_block['product']
-        verified_owner = verified_block['owner_history'][-1]
+        verified_owner = verified_block['owner_history'][-1]['owner']
+        print(verified_owner)
+        print(current_owner)
 
         # if product exists and last owner is verified, create new block
         if verified_product == current_product and verified_owner == current_owner:
@@ -135,16 +137,11 @@ def transaction():
             break
         # if product exists but last owner is not verified, do NOT create new block
         elif verified_product == current_product and verified_owner != current_owner:
-            response = {
-                'message': "New Block NOT Forged; Product is verified, but owner is not"
-            }
-            break
+            return "Error: Product exists but owner is not verified; Block NOT forged", 400
 
     # if product does not exist, do NOT create new block
     if response is None:
-        response = {
-            'message': "New Block NOT Forged; Product is not verified"
-        }
+        return "Error: Product does not exist; Block NOT forged", 400
 
     return jsonify(response), 201
 

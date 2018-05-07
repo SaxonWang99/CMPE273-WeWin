@@ -151,7 +151,7 @@ def transaction():
 #     param: current_owner
 #     param: new_owner
 # }
-@app.route('/validate/<string:cur_upc>,<int:cur_item_no>,<string:cur_owner>', methods=['GET'])
+@app.route('/validate/<string:cur_upc>/<int:cur_item_no>/<string:cur_owner>', methods=['GET'])
 def validate(cur_upc,cur_item_no,cur_owner):
     #TODO: validation; iterate through blockchain; verify by upc, item_no, current_owner for most recent
     if  blockchain.valid_trans(blockchain,cur_upc,cur_item_no,cur_owner):

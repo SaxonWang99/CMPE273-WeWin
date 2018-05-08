@@ -139,7 +139,7 @@ def transaction():
 #     param: item_no
 #     param: current_owner
 # }
-@app.route('/validate/<string:cur_upc>,<string:manufacturer>,<int:cur_item_no>,<string:cur_owner>', methods=['GET'])
+@app.route('/validate/<string:cur_upc>/<string:manufacturer>/<int:cur_item_no>/<string:cur_owner>', methods=['GET'])
 def validate(cur_upc,manufacturer,cur_item_no,cur_owner):
     #TODO: validation; iterate through blockchain; verify by upc, item_no, current_owner for most recent
     check_product ={'upc':cur_upc,

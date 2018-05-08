@@ -191,7 +191,7 @@ class Blockchain:
 
         return self.last_block['index'] + 1
 
-    def new_owner(self,owner_history, owner):
+    def new_owner(self, owner_history, owner):
         """
         Creates a new owner to go into the next mined Block
         :param owner: Address of the Sender

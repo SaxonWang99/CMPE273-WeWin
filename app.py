@@ -2,14 +2,18 @@ from uuid import uuid4
 
 import requests
 from flask import Flask, jsonify, request
+<<<<<<< HEAD
 import json
 import datetime
+=======
+from flask_cors import CORS
+>>>>>>> c1176c10db5a2c1dbb219b64cb6621ef23a8d0fa
 from blockchain import Blockchain
 
 
 # Instantiate the Node
 app = Flask(__name__)
-
+CORS(app)
 # Generate a globally unique address for this node
 node_identifier = str(uuid4()).replace('-', '')
 
@@ -26,8 +30,11 @@ def full_chain():
     }
     return jsonify(response), 200
 
+
+# /register - register new product
 # {
 #     param: upc
+#     param: manufacturer
 #     param: item_no
 #     param: new_owner
 # }
@@ -81,8 +88,10 @@ def register_product():
                                 "UserType": typeUser}), 400
 
 
+# /transaction - create new transaction
 # {
 #     param: upc
+#     param: manufacturer
 #     param: item_no
 #     param: current_owner
 #     param: new_owner
@@ -97,8 +106,8 @@ def transaction():
     last_block = blockchain.last_block
     proof = blockchain.proof_of_work(last_block)
 
+    # validate request parameters
     values = request.get_json()
-
     required = ['upc', 'manufacturer', 'item_no', 'current_owner', 'new_owner']
     if not all(k in values for k in required):
         return 'Missing values', 400

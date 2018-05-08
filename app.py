@@ -2,12 +2,8 @@ from uuid import uuid4
 
 import requests
 from flask import Flask, jsonify, request
-<<<<<<< HEAD
 import json
 import datetime
-=======
-from flask_cors import CORS
->>>>>>> c1176c10db5a2c1dbb219b64cb6621ef23a8d0fa
 from blockchain import Blockchain
 
 

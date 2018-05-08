@@ -3,12 +3,15 @@ import json
 from time import time
 from urllib.parse import urlparse
 import requests
+import datetime
 
 
 class Blockchain:
     def __init__(self):
-        self.product = None
-        self.owner_history = []
+        self.product = {'upc':"777777777777",
+                        'manufacturer': "Genesis",
+                        'item_no':"9"}
+        self.owner_history = [{'owner': "WeWin-TV"}]
         self.chain = []
         self.nodes = set()
 
@@ -42,15 +45,15 @@ class Blockchain:
 
         while current_index < len(chain):
             block = chain[current_index]
-            print(f'{last_block}')
-            print(f'{block}')
-            print("\n-----------\n")
+            #print(f'{last_block}')
+            #print(f'{block}')
+            #print("\n-----------\n")
             # Check that the hash of the block is correct
             if block['previous_hash'] != self.hash(last_block):
                 return False
 
             # Check that the Proof of Work is correct
-            if not self.valid_proof(last_block['proof'], block['proof'], last_block['previous_hash']):
+            if not self.valid_proof(last_block['proof'], block['proof'], block['previous_hash']):
                 return False
 
             last_block = block
@@ -58,36 +61,49 @@ class Blockchain:
 
         return True
 
-    def valid_trans(self, chain, cur_upc,cur_item_no,current_owner):
+    def identifyProduct(self, chain, check_product):
+        if check_product is None:
+            return False
+        if len(chain) > 1:
+            last_block = chain[1]
+        current_index = 1
+        result = False
+        while current_index < len(chain):
+            last_block = chain[current_index]
+            if last_block['product'] == check_product:
+                    #current_index = len(chain)
+                    result = True
+                    break
+            current_index += 1
+        return result
+
+    def valid_trans(self, m_bchain, check_product,current_owner):
         """
         Determine if a given blockchain is valid
         :param chain: A blockchain
         :return: True if valid, False if not
         """
-        chainvalided = self.valid_chain(chain.chain)
+        chainvalided = self.valid_chain(m_bchain.chain)
         if(chainvalided):
-            print("good",chainvalided)
+            lastIndex = len(m_bchain.chain)-1
+            last_block = m_bchain.chain[lastIndex]
+            while lastIndex >0:
+                #print("whiel")
+                if last_block['product'] == check_product:
+                        #print(last_block['owner_history'][0]['owner'])
+                        #print("leng",last_owner_index)
+                        if last_block['owner_history'][-1]['owner'] == current_owner:
+                            return last_block
+                        else:
+                            #print(last_block['owner_history'],"-+-",current_owner)
+                            return None
+                    #else:
+                        #print(last_block['product']['item_no'],"-+-",cur_item_no)
+                #print(block)
+                lastIndex-= 1
+                last_block = m_bchain.chain[lastIndex]
         else:
-            print("bad",chainvalided)
-        #print(chain)
-        lastIndex = len(chain.chain)-1
-        last_block = chain.chain[lastIndex]
-        while lastIndex >0:
-            if last_block['product']['upc'] == cur_upc:
-                if last_block['product']['item_no'] == cur_item_no:
-                    #print(last_block['owner_history'][0]['owner'])
-                    if last_block['owner_history'][0]['owner'] == current_owner:
-                        #print(last_block['owner_history'],"---",current_owner)
-                        return True
-                    else:
-                       # print(last_block['owner_history'],"-+-",current_owner)
-                        return False
-                #else:
-                    #print(last_block['product']['item_no'],"-+-",cur_item_no)
-            #print(block)
-            lastIndex-= 1
-            last_block = chain.chain[lastIndex]
-        return False
+            return None
 
     def resolve_conflicts(self):
         """
@@ -101,20 +117,33 @@ class Blockchain:
 
         # We're only looking for chains longer than ours
         max_length = len(self.chain)
+        #print("max length",max_length)
 
         # Grab and verify the chains from all the nodes in our network
+        #if neighbours:
+            #currentNode = list(neighbours)[0]
+        #print("curr", currentNode)
         for node in neighbours:
-            response = requests.get(f'http://{node}/chain')
+            #print(currentNode,"---",node)
+            #if currentNode != node:
+            if node:
+                #print("helle",node)
+                try:
+                    response = requests.get(f'http://{node}/chain')
+                    if response.status_code == 200:
+                        #print("inhere",node)
+                        length = response.json()['length']
+                        chain = response.json()['chain']
 
-            if response.status_code == 200:
-                length = response.json()['length']
-                chain = response.json()['chain']
-
-                # Check if the length is longer and the chain is valid
-                if length > max_length and self.valid_chain(chain):
-                    max_length = length
-                    new_chain = chain
-
+                        # Check if the length is longer and the chain is valid
+                        if length > max_length and self.valid_chain(chain):
+                            #print("ttt",node)
+                            max_length = length
+                            new_chain = chain
+                            print("chain will be update with new chain in ",node)
+                except requests.exceptions.RequestException as e:  # This is the correct syntax
+                    print(e)       
+        #print("test here")
         # Replace our chain if we discovered a new, valid chain longer than ours
         if new_chain:
             self.chain = new_chain
@@ -132,7 +161,8 @@ class Blockchain:
 
         block = {
             'index': len(self.chain) + 1,
-            'timestamp': time(),
+            'timestamp': str(datetime.datetime.utcnow()),
+            #'timestamp': time(),
             'product': self.product,
             'owner_history': self.owner_history,
             'proof': proof,
@@ -146,7 +176,7 @@ class Blockchain:
         self.chain.append(block)
         return block
 
-    def new_product(self, upc, item_no):
+    def new_product(self, upc, manufacturer, item_no):
         """
         Creates a new product to go into the next mined Block
         :param upc: UPC of the product
@@ -155,17 +185,19 @@ class Blockchain:
         """
         self.product = { 
             'upc': upc,
+            'manufacturer': manufacturer,
             'item_no': item_no
         }
 
         return self.last_block['index'] + 1
 
-    def new_owner(self, owner):
+    def new_owner(self,owner_history, owner):
         """
         Creates a new owner to go into the next mined Block
         :param owner: Address of the Sender
         :return: The index of the Block that will hold this transaction
         """
+        self.owner_history = owner_history
         self.owner_history.append({
             'owner': owner
         })

@@ -1,9 +1,10 @@
 import requests
 import json
 
-print("register node 5000 and 5001")
+print("register node 5000, 5001, 5002, 5003, 5004, 5005")
 m_node = {   
-    "nodes" : ["http://127.0.0.1:5000","http://127.0.0.1:5001"]
+    "nodes" : ["http://127.0.0.1:5000","http://127.0.0.1:5001",
+    "http://127.0.0.1:5002","http://127.0.0.1:5003","http://127.0.0.1:5004","http://127.0.0.1:5005"]
 }
 r = requests.post('http://127.0.0.1:5000/nodes/register',json = m_node)
 print(r.text)

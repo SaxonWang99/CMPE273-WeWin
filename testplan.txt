@@ -1,0 +1,20 @@
+Manufacturer Node
+1. Register nodes
+2. Register product1 (do it again - should be invalid)
+3. Register product2 
+4. validate product api
+5. Transaction upon product1 (show valid and invalid txns)
+
+Retailer Node
+6. Register nodes
+7. Register product (should be invalid)
+8. Resolve chain
+9. Transaction on product2 (show valid and invalid txns)
+
+Manufacturer Node
+10. Transaction on product2
+11. Show chain is up to date
+
+
+
+

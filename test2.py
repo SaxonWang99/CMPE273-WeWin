@@ -27,6 +27,10 @@ def nodeReg():
     myURL = serverUrl+'/nodes/register'
     r = requests.post(myURL,json = m_node)
     print(r.text)
+    result = json.loads(r.text)
+    manufacturer = result['ID']
+    #print(r.text)
+    print("ID",manufacturer)
     print("--------------------------------------------------------------------------------")
 
 def getChain():

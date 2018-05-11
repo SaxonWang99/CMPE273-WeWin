@@ -3,15 +3,18 @@ import requests
 import json
 
 option =-1
+currentIndex =1
 serverUrl ="http://127.0.0.1:"
 mPort = 5000
+manufacturer =""
 block = {   
-    "upc" : "300871365612", 
+    "upc" : "300871365612",
     "item_no":1,
-    "owner": "TinVu",
+    "new_owner": "TinVu",
 }
 trans_block = {   
-    "upc" : "300871365612", 
+    "upc" : "300871365612",
+    'manufacturer': "",
     "item_no":1,
     "current_owner": "TinVu",
     "new_owner": "A",
@@ -25,52 +28,102 @@ def nodeReg():
     }
     myURL = serverUrl+'/nodes/register'
     r = requests.post(myURL,json = m_node)
+    result = json.loads(r.text)
+    global manufacturer
+    manufacturer = result['ID']
     print(r.text)
+    print("ID",manufacturer)
     print("--------------------------------------------------------------------------------")
 
-def getChain():
-    print("get all info from chain")
-    myURL = serverUrl+'/chain'
-    r = requests.get(myURL)
-    print(r.text)
-    print("------------------------------------------------------------------------------------")
+def getChain(printOption):
+    if printOption == 1:
+        print("get all info from chain")
+        myURL = serverUrl+'/chain'
+        r = requests.get(myURL)
+        print(r.text)
+        print("------------------------------------------------------------------------------------")
+    else:
+        myURL = serverUrl+'/chain'
+        r = requests.get(myURL)
+        result = json.loads(r.text)
+        currentIndex = int(result['length'])
+        print(currentIndex)
+        print("------------------------------------------------------------------------------------")
+        
+       
 
 def mineProduct():
-    print("mine 1000 products to blockchain")
     myURL = serverUrl+'/register'
-    for a in range(1, 5):
-        block['item_no'] = a
-        #print(block)
+    getChain(2)
+    print("press 1 mine a product 2 to auto mine 5 product to blockchain")
+    loption = int(input())
+    if loption==1:
+        print("please input new owner")
+        lnewowner = input()
+        block['item_no']=currentIndex +1
+        block['new_owner']= lnewowner
         r = requests.post(myURL,json = block)
         print(r.text)
         print("---------------------------------------------------------------")
+    else:
+        start = currentIndex+1
+        for a in range(start,start+ 5):
+            block['item_no'] = a
+            #print(block)
+            r = requests.post(myURL,json = block)
+            print(r.text)
+            print("---------------------------------------------------------------")
 
 
 def transProduct():
     #r = requests.post('http://127.0.0.1:5000/transaction',json = trans_block)
-    print("do transaction 10 products to blockchain")
     myURL = serverUrl+'/transaction'
-    for a in range(1, 5):
-        trans_block['new_owner'] =  trans_block['new_owner']+str(a)
-        trans_block['item_no'] = a
-        #print(trans_block)
+    getChain(2)
+    trans_block['manufacturer'] = manufacturer
+    print("from :",manufacturer)
+    print("press 1 transfer from manufacture 2 to enter a name")
+    loption = int(input())
+    if loption==1:      
+        print("please enter item number")
+        item = int(input())
+        trans_block['item_no'] = item
+        print("please enter new owner")
+        new = input()
+        trans_block['new_owner'] = new
+        print("please enter old owner")
+        old = input()
+        trans_block['current_owner'] = old
+        print("here",trans_block)
+        r = requests.post(myURL,json = trans_block)
+        print(r.text)
+        print("---------------------------------------------------------------")
+    else:
+        print("please enter item number")
+        item = int(input())
+        trans_block['item_no'] = item
+        print("please enter new owner")
+        new = input()
+        trans_block['new_owner'] = new
+        print("please enter old owner")
+        old = input()
+        trans_block['current_owner'] = old
+        print("here",trans_block)
         r = requests.post(myURL,json = trans_block)
         print(r.text)
         print("---------------------------------------------------------------")
 
 def validateProduct():
-
-    print("validate 300871365612,1,TinVu ")
-    myURL = serverUrl+'/validate/300871365612,1,TinVu'
+    myURL = serverUrl+'/validate/300871365612,'+ manufacturer+','
+    print("please enter item number")
+    item = input()
+    myURL += str(item)
+    print("please enter owner")
+    owner = input()
+    myURL += ','+owner
     r = requests.get(myURL)
     print(r.text)
     print("---------------------------------------------------------------")
 
-    print("validate 300871365612,1,A1")
-    myURL = serverUrl+'/validate/300871365612,1,A1'
-    r = requests.get(myURL)
-    print(r.text)
-    print("---------------------------------------------------------------")
 
 def relicateChain():
     print("update chain with neighbor node ")
@@ -104,7 +157,7 @@ while option == -1:
                     if option ==5:
                         relicateChain()
                     if option ==6:
-                        getChain()
+                        getChain(1)
                 except ValueError:
                 #Handle the exception
                     print('Please enter an integer')

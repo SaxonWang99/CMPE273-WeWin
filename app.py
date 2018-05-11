@@ -177,6 +177,7 @@ def register_nodes():
     response = {
         'message': 'New nodes have been added',
         'total_nodes': list(blockchain.nodes),
+        'ID':node_identifier
     }
     return jsonify(response), 201
 
@@ -210,5 +211,5 @@ if __name__ == '__main__':
     typeUser = args.type
     userName = port
 
-    app.run(host='127.0.0.1', port=port)
+    app.run(host='0.0.0.0', port=port)
    
